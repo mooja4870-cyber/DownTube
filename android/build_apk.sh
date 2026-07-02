@@ -20,9 +20,10 @@ if [[ ! -f "$KS" ]]; then
     -dname "CN=Android Debug,O=Android,C=US"
 fi
 
-# 1) 매니페스트 → 리소스 없는 기본 APK
+# 1) 리소스(아이콘) 컴파일 + 매니페스트 링크
+"$BT/aapt2" compile --dir res -o "$OUT/res.zip"
 "$BT/aapt2" link -o "$OUT/base.apk" --manifest AndroidManifest.xml -I "$PLATFORM" \
-  --min-sdk-version 24 --target-sdk-version 34
+  "$OUT/res.zip" --auto-add-overlay --min-sdk-version 24 --target-sdk-version 34
 
 # 2) 자바 컴파일 → DEX 변환
 javac -d "$OUT/classes" -classpath "$PLATFORM" -source 11 -target 11 \

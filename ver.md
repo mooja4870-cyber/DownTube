@@ -1,5 +1,28 @@
 # Version History
 
+## v3.3.1
+
+Date: 2026-07-03
+
+### 변경 내용
+
+* **앱 아이콘 추가** — 빨간 그라데이션 배경에 흰색 재생▶ + 다운로드↓ 글리프
+  * 어댑티브 아이콘(Android 8.0+, 런처 모양에 맞게 자동 마스킹) + 레거시 아이콘(둥근 모서리) 모두 포함
+  * 전 해상도(mdpi~xxxhdpi) PNG 생성 스크립트 `android/make_icons.py` (Pillow)
+* APK 버전 3.3.1(331)로 갱신, 크기 약 50KB
+
+### 수정 파일
+
+* android/make_icons.py, android/res/** (신규)
+* android/AndroidManifest.xml (아이콘 연결, 버전 갱신)
+* android/build_apk.sh (리소스 컴파일 단계 추가)
+* DownTube.apk (재빌드)
+
+### 검증 내용
+
+* aapt2 badging에서 어댑티브 아이콘 연결 확인, apksigner 서명 검증 통과
+* GitHub raw 링크에서 새 APK 다운로드 및 로컬 파일 일치 확인
+
 ## v3.3.0
 
 Date: 2026-07-03
