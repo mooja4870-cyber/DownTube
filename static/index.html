@@ -118,11 +118,6 @@
     border-radius: 12px; padding: 15px; font-size: 17px; font-weight: 800; }
   .go:disabled { opacity: .5; }
 
-  #login { position: fixed; inset: 0; background: var(--bg); z-index: 20; display: none;
-    flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
-  #login .card { width: 100%; max-width: 380px; margin: 0; }
-  #login input { width: 100%; background: var(--card2); border: 1px solid var(--line); color: var(--text);
-    border-radius: 12px; padding: 14px; font-size: 16px; outline: none; }
   .toast { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%);
     background: #333a46; color: #fff; padding: 11px 18px; border-radius: 12px; font-size: 14px;
     opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 30; max-width: 90%; }
@@ -184,15 +179,6 @@
   <button class="go" id="dlbtn">다운로드</button>
 </div>
 
-<div id="login">
-  <div class="card">
-    <h1 style="margin-bottom:14px">Down<span style="color:var(--accent2)">Tube</span></h1>
-    <label>접속 비밀번호</label>
-    <input type="password" id="pw" autocomplete="current-password">
-    <button class="go" id="loginbtn">로그인</button>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
@@ -234,20 +220,9 @@ async function api(path, opts = {}) {
     throw new Error("HTML 파일을 직접 연 화면에서는 동작하지 않습니다. run.sh 실행 후 표시되는 서버 주소로 접속해 주세요.");
   }
   const r = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
-  if (r.status === 401) { $("#login").style.display = "flex"; throw new Error("auth"); }
   if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || "요청 실패");
   return r.json();
 }
-
-/* ---------- 로그인 ---------- */
-$("#loginbtn").onclick = async () => {
-  try {
-    await api("/api/login", { method: "POST", body: JSON.stringify({ password: $("#pw").value }) });
-    $("#login").style.display = "none"; $("#pw").value = "";
-    loadFeed(curQuery); pollJobs();
-  } catch (e) { if (e.message !== "auth") toast(e.message); }
-};
-$("#pw").addEventListener("keydown", e => { if (e.key === "Enter") $("#loginbtn").click(); });
 
 /* ---------- 탐색 (카테고리 + 검색) ---------- */
 const chipsBox = $("#chips");
@@ -291,7 +266,7 @@ async function loadFeed(query, count = 18) {
     $("#more").style.display = count < 50 ? "" : "none";
     window.scrollTo({ top: 0 });
   } catch (e) {
-    if (e.message !== "auth") grid.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+    grid.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
   }
 }
 $("#more").onclick = () => loadFeed(curQuery, Math.min(curCount + 18, 50));
@@ -340,7 +315,7 @@ $("#dlbtn").onclick = async () => {
     closeSheet();
     toast("다운로드를 시작했습니다 — 하단 '다운로드' 탭에서 확인");
     pollJobs();
-  } catch (e) { if (e.message !== "auth") toast(e.message); }
+  } catch (e) { toast(e.message); }
   $("#dlbtn").disabled = false;
 };
 
@@ -386,7 +361,7 @@ function renderJobs(list) {
 
 async function delJob(id) {
   try { await api(`/api/jobs/${id}`, { method: "DELETE" }); pollJobs(); }
-  catch (e) { if (e.message !== "auth") toast(e.message); }
+  catch (e) { toast(e.message); }
 }
 
 let timer = null;
@@ -397,7 +372,7 @@ async function pollJobs() {
     clearTimeout(timer);
     timer = setTimeout(pollJobs,
       list.some(j => j.status === "preparing" || j.status === "downloading") ? 1500 : 6000);
-  } catch (e) { /* 로그인 오버레이 표시됨 */ }
+  } catch (e) { /* 일시적 네트워크 오류는 다음 폴링에서 회복 */ }
 }
 
 loadFeed(curQuery);

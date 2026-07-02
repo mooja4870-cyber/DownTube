@@ -1,8 +1,5 @@
 """DownTube — 유튜브 탐색·검색 후 선택한 영상을 mp4/mp3로 다운로드하는 웹 앱."""
 
-import hashlib
-import hmac
-import os
 import re
 import shutil
 import threading
@@ -12,16 +9,14 @@ import zipfile
 from pathlib import Path
 
 import yt_dlp
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
 
 BASE_DIR = Path(__file__).resolve().parent
 DOWNLOAD_DIR = BASE_DIR / "downloads"
 DOWNLOAD_DIR.mkdir(exist_ok=True)
 
-PASSWORD = os.environ.get("DOWNTUBE_PASSWORD", "downtube1234")
-_SECRET = hashlib.sha256(f"downtube-salt::{PASSWORD}".encode()).digest()
 FFMPEG = shutil.which("ffmpeg") or "/opt/homebrew/bin/ffmpeg"
 VIDEO_ID_RE = re.compile(r"^[A-Za-z0-9_-]{6,20}$")
 
@@ -34,20 +29,6 @@ jobs_lock = threading.Lock()
 _search_cache: dict[str, tuple[float, list]] = {}
 _search_lock = threading.Lock()
 SEARCH_TTL = 600
-
-
-def _token() -> str:
-    return hmac.new(_SECRET, b"downtube-auth", hashlib.sha256).hexdigest()
-
-
-def check_auth(request: Request) -> None:
-    supplied = request.cookies.get("dt_token") or request.query_params.get("token")
-    if not supplied or not hmac.compare_digest(supplied, _token()):
-        raise HTTPException(status_code=401, detail="인증이 필요합니다")
-
-
-class LoginReq(BaseModel):
-    password: str
 
 
 class DownloadReq(BaseModel):
@@ -129,18 +110,8 @@ def index() -> HTMLResponse:
     return HTMLResponse((BASE_DIR / "static" / "index.html").read_text(encoding="utf-8"))
 
 
-@app.post("/api/login")
-def login(body: LoginReq) -> JSONResponse:
-    if body.password != PASSWORD:
-        raise HTTPException(status_code=401, detail="비밀번호가 올바르지 않습니다")
-    resp = JSONResponse({"ok": True})
-    resp.set_cookie("dt_token", _token(), max_age=30 * 24 * 3600, samesite="lax")
-    return resp
-
-
 @app.get("/api/search")
-def api_search(request: Request, q: str, count: int = 18) -> list[dict]:
-    check_auth(request)
+def api_search(q: str, count: int = 18) -> list[dict]:
     q = q.strip()
     if not q:
         raise HTTPException(status_code=400, detail="검색어를 입력해 주세요")
@@ -175,8 +146,7 @@ def api_search(request: Request, q: str, count: int = 18) -> list[dict]:
 
 
 @app.post("/api/download")
-def api_download(req: DownloadReq, request: Request) -> dict:
-    check_auth(request)
+def api_download(req: DownloadReq) -> dict:
     if not VIDEO_ID_RE.match(req.id):
         raise HTTPException(status_code=400, detail="올바르지 않은 영상 ID입니다")
     if req.fmt not in ("mp4", "mp3"):
@@ -204,15 +174,13 @@ def api_download(req: DownloadReq, request: Request) -> dict:
 
 
 @app.get("/api/jobs")
-def api_jobs(request: Request) -> list[dict]:
-    check_auth(request)
+def api_jobs() -> list[dict]:
     with jobs_lock:
         return sorted(jobs.values(), key=lambda j: j["created"], reverse=True)
 
 
 @app.delete("/api/jobs/{job_id}")
-def api_delete_job(job_id: str, request: Request) -> dict:
-    check_auth(request)
+def api_delete_job(job_id: str) -> dict:
     with jobs_lock:
         job = jobs.get(job_id)
         if job and job["status"] in ("done", "error"):
@@ -232,15 +200,13 @@ def _safe_job_file(job_id: str, filename: str) -> Path:
 
 
 @app.get("/files/{job_id}/{filename:path}")
-def get_file(job_id: str, filename: str, request: Request) -> FileResponse:
-    check_auth(request)
+def get_file(job_id: str, filename: str) -> FileResponse:
     path = _safe_job_file(job_id, filename)
     return FileResponse(path, filename=path.name, media_type="application/octet-stream")
 
 
 @app.get("/api/jobs/{job_id}/zip")
-def get_zip(job_id: str, request: Request) -> FileResponse:
-    check_auth(request)
+def get_zip(job_id: str) -> FileResponse:
     job = jobs.get(job_id)
     if not job or job["status"] != "done":
         raise HTTPException(status_code=404, detail="완료된 작업이 아닙니다")

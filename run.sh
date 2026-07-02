@@ -7,7 +7,6 @@ cd "$(dirname "$0")"
 
 export PATH="/opt/homebrew/bin:$PATH"
 PORT="${DOWNTUBE_PORT:-8756}"
-export DOWNTUBE_PASSWORD="${DOWNTUBE_PASSWORD:-downtube1234}"
 
 if [[ "$1" == "--tunnel" ]]; then
   .venv/bin/uvicorn app:app --host 127.0.0.1 --port "$PORT" &
