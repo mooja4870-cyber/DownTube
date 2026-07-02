@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DownTube</title>
+<style>
+  :root {
+    --bg: #0f1115; --card: #1a1d24; --card2: #22262f; --text: #e8eaed;
+    --sub: #9aa0a6; --accent: #ff3b30; --accent2: #ff6b60; --ok: #34c759;
+    --err: #ff453a; --line: #2c313c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg); color: var(--text); min-height: 100vh;
+    font-family: -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", Roboto, sans-serif;
+    padding: 16px 14px calc(24px + env(safe-area-inset-bottom));
+    max-width: 560px; margin: 0 auto;
+  }
+  header { display: flex; align-items: center; gap: 10px; margin: 6px 0 18px; }
+  .logo { width: 38px; height: 38px; border-radius: 10px; background: var(--accent);
+    display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  h1 span { color: var(--accent2); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 16px; margin-bottom: 14px; }
+  label { font-size: 13px; color: var(--sub); display: block; margin-bottom: 6px; }
+  input[type=text], input[type=password] {
+    width: 100%; background: var(--card2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 12px; padding: 14px; font-size: 16px; outline: none;
+  }
+  input:focus { border-color: var(--accent2); }
+  .row { display: flex; gap: 8px; margin-top: 12px; }
+  .seg { display: flex; flex: 1; background: var(--card2); border-radius: 12px; padding: 4px; }
+  .seg button { flex: 1; border: 0; background: transparent; color: var(--sub); padding: 10px 0;
+    border-radius: 9px; font-size: 15px; font-weight: 700; }
+  .seg button.on { background: var(--accent); color: #fff; }
+  select { flex: 1; background: var(--card2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 12px; padding: 0 12px; font-size: 15px; }
+  .go { width: 100%; margin-top: 14px; background: var(--accent); color: #fff; border: 0;
+    border-radius: 12px; padding: 15px; font-size: 17px; font-weight: 800; }
+  .go:disabled { opacity: .5; }
+  .hint { font-size: 12px; color: var(--sub); margin-top: 10px; line-height: 1.5; }
+  .job { border-top: 1px solid var(--line); padding: 13px 2px; }
+  .job:first-of-type { border-top: 0; }
+  .jtitle { font-size: 15px; font-weight: 700; word-break: break-all; }
+  .jmeta { font-size: 12px; color: var(--sub); margin-top: 3px; }
+  .bar { height: 6px; background: var(--card2); border-radius: 3px; margin-top: 9px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px;
+    transition: width .4s; }
+  .files { margin-top: 9px; display: flex; flex-direction: column; gap: 7px; }
+  .files a { display: block; background: var(--card2); border: 1px solid var(--line);
+    color: var(--text); text-decoration: none; border-radius: 10px; padding: 11px 12px;
+    font-size: 13.5px; word-break: break-all; }
+  .files a b { color: var(--ok); font-weight: 800; margin-right: 6px; }
+  .zipbtn { text-align: center; font-weight: 800; border-color: var(--ok) !important; }
+  .status-done { color: var(--ok); } .status-error { color: var(--err); }
+  .del { float: right; background: none; border: 0; color: var(--sub); font-size: 13px; padding: 2px 4px; }
+  .empty { text-align: center; color: var(--sub); font-size: 13.5px; padding: 18px 0; }
+  #login { position: fixed; inset: 0; background: var(--bg); z-index: 10; display: none;
+    flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+  #login .card { width: 100%; max-width: 380px; }
+  .toast { position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%);
+    background: #333a46; color: #fff; padding: 11px 18px; border-radius: 12px; font-size: 14px;
+    opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 20; max-width: 90%; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">▶</div>
+  <h1>Down<span>Tube</span></h1>
+</header>
+
+<div class="card">
+  <label>유튜브 URL (영상 · 재생목록 · 채널)</label>
+  <input type="text" id="url" placeholder="https://www.youtube.com/..." autocomplete="off">
+  <div class="row">
+    <div class="seg" id="fmtseg">
+      <button data-fmt="mp4" class="on">MP4 영상</button>
+      <button data-fmt="mp3">MP3 음원</button>
+    </div>
+    <select id="quality">
+      <option value="best">최고 화질</option>
+      <option value="1080">1080p</option>
+      <option value="720">720p</option>
+      <option value="480">480p</option>
+    </select>
+  </div>
+  <button class="go" id="go">다운로드</button>
+  <div class="hint">재생목록·채널 URL을 넣으면 포함된 모든 영상을 받습니다.<br>본인 소유 또는 개인적 이용 범위 내에서만 사용하세요.</div>
+</div>
+
+<div class="card">
+  <label>다운로드 작업</label>
+  <div id="jobs"><div class="empty">아직 작업이 없습니다</div></div>
+</div>
+
+<div id="login">
+  <div class="card">
+    <h1 style="margin-bottom:14px">Down<span style="color:var(--accent2)">Tube</span></h1>
+    <label>접속 비밀번호</label>
+    <input type="password" id="pw" autocomplete="current-password">
+    <button class="go" id="loginbtn">로그인</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+let fmt = "mp4";
+
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+$("#fmtseg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  fmt = b.dataset.fmt;
+  document.querySelectorAll("#fmtseg button").forEach(x => x.classList.toggle("on", x === b));
+  $("#quality").style.display = fmt === "mp3" ? "none" : "";
+});
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
+  if (r.status === 401) { $("#login").style.display = "flex"; throw new Error("auth"); }
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || "요청 실패");
+  return r.json();
+}
+
+$("#loginbtn").onclick = async () => {
+  try {
+    await api("/api/login", { method: "POST", body: JSON.stringify({ password: $("#pw").value }) });
+    $("#login").style.display = "none"; $("#pw").value = ""; poll();
+  } catch (e) { if (e.message !== "auth") toast(e.message); }
+};
+$("#pw").addEventListener("keydown", e => { if (e.key === "Enter") $("#loginbtn").click(); });
+
+$("#go").onclick = async () => {
+  const url = $("#url").value.trim();
+  if (!url) return toast("URL을 입력해 주세요");
+  $("#go").disabled = true;
+  try {
+    await api("/api/download", { method: "POST",
+      body: JSON.stringify({ url, fmt, quality: $("#quality").value }) });
+    $("#url").value = ""; toast("다운로드를 시작했습니다"); poll();
+  } catch (e) { if (e.message !== "auth") toast(e.message); }
+  $("#go").disabled = false;
+};
+
+function esc(s) { return s.replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
+
+function render(list) {
+  const box = $("#jobs");
+  if (!list.length) { box.innerHTML = '<div class="empty">아직 작업이 없습니다</div>'; return; }
+  box.innerHTML = list.map(j => {
+    const pct = j.status === "done" ? 100
+      : j.total > 1 ? Math.min(99, (j.completed / j.total) * 100) : j.file_progress;
+    const stat = { preparing: "준비 중...", downloading: "다운로드 중", done: "완료", error: "오류" }[j.status] || j.status;
+    let body = "";
+    if (j.status === "downloading" || j.status === "preparing") {
+      body = `<div class="bar"><i style="width:${pct}%"></i></div>
+        <div class="jmeta">${j.total > 1 ? `${j.completed}/${j.total}개 완료 · ` : ""}${j.file_progress}% ${esc(j.message || "")} ${esc(j.current_file || "")}</div>`;
+    } else if (j.status === "done") {
+      const links = j.files.map(f =>
+        `<a href="/files/${j.id}/${encodeURIComponent(f)}" download><b>↓</b>${esc(f)}</a>`).join("");
+      const zip = j.files.length > 1
+        ? `<a class="zipbtn" href="/api/jobs/${j.id}/zip"><b>⬇</b>전체 ZIP으로 받기 (${j.files.length}개)</a>` : "";
+      body = `<div class="files">${links}${zip}</div>`;
+    } else if (j.status === "error") {
+      body = `<div class="jmeta status-error">${esc(j.error)}</div>`;
+    }
+    const del = (j.status === "done" || j.status === "error")
+      ? `<button class="del" onclick="delJob('${j.id}')">삭제</button>` : "";
+    return `<div class="job">${del}
+      <div class="jtitle">${esc(j.title || j.url)}</div>
+      <div class="jmeta"><span class="status-${j.status}">${stat}</span> · ${j.fmt.toUpperCase()}${j.fmt === "mp4" ? " · " + (j.quality === "best" ? "최고화질" : j.quality + "p") : ""}</div>
+      ${body}</div>`;
+  }).join("");
+}
+
+async function delJob(id) {
+  try { await api(`/api/jobs/${id}`, { method: "DELETE" }); poll(); }
+  catch (e) { if (e.message !== "auth") toast(e.message); }
+}
+
+let timer = null;
+async function poll() {
+  try {
+    const list = await api("/api/jobs");
+    render(list);
+    clearTimeout(timer);
+    timer = setTimeout(poll, list.some(j => j.status === "preparing" || j.status === "downloading") ? 1500 : 5000);
+  } catch (e) { /* 로그인 오버레이 표시됨 */ }
+}
+poll();
+</script>
+</body>
+</html>
