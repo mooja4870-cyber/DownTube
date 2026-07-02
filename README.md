@@ -13,6 +13,17 @@
 - 포트 변경: `DOWNTUBE_PORT=포트번호`
 - 접속 비밀번호 없음 — 주소를 아는 사람은 누구나 사용 가능 (특히 `--tunnel` 사용 시 주의)
 
+## 안드로이드 앱 (APK)
+
+**다운로드**: <https://github.com/mooja4870-cyber/DownTube/raw/master/DownTube.apk>
+
+1. 핸드폰에서 위 링크로 APK 다운로드 → 설치 (설정에서 '출처를 알 수 없는 앱 허용' 필요)
+2. 앱 실행 → 서버 주소 입력: 같은 Wi-Fi면 `http://맥IP:8756`, 외부면 터널 주소
+3. 이후 웹과 동일하게 사용 — 파일은 핸드폰 '다운로드' 폴더에 저장됨
+4. 서버 주소 변경: 첫 화면에서 뒤로가기 버튼을 누르면 주소 입력창이 열림
+
+APK 다시 빌드: `./android/build_apk.sh` (Android SDK build-tools 필요)
+
 ## 사용법 (핸드폰)
 
 1. 브라우저로 위 주소 접속

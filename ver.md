@@ -1,5 +1,30 @@
 # Version History
 
+## v3.3.0
+
+Date: 2026-07-03
+
+### 변경 내용
+
+* GitHub 저장소 연결 및 푸시 — https://github.com/mooja4870-cyber/DownTube (main·master 브랜치, 전체 태그)
+* **안드로이드 APK 추가** (`DownTube.apk`, 약 12KB)
+  * WebView 기반 네이티브 앱 — 실행 시 서버 주소 입력(저장됨), 뒤로가기로 주소 변경
+  * 파일 다운로드는 안드로이드 DownloadManager로 핸드폰 '다운로드' 폴더에 저장
+  * minSdk 24(Android 7.0+), targetSdk 34, 디버그 키 서명
+  * 다운로드 링크: https://github.com/mooja4870-cyber/DownTube/raw/master/DownTube.apk
+* 빌드 스크립트 `android/build_apk.sh` (Gradle 없이 aapt2+javac+d8+apksigner 사용)
+
+### 수정 파일
+
+* android/AndroidManifest.xml, android/java/com/downtube/app/MainActivity.java, android/build_apk.sh (신규)
+* DownTube.apk (신규, 빌드 산출물)
+* README.md (APK 설치 안내 추가)
+
+### 검증 내용
+
+* apksigner 서명 검증, aapt2 badging(패키지명·권한·런처 액티비티) 확인
+* GitHub main/master 푸시 및 태그 업로드 확인
+
 ## v3.2.0
 
 Date: 2026-07-03
