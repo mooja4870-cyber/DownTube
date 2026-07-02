@@ -1,5 +1,6 @@
 """DownTube — 유튜브 탐색·검색 후 선택한 영상을 mp4/mp3로 다운로드하는 웹 앱."""
 
+import hashlib
 import re
 import shutil
 import threading
@@ -16,6 +17,13 @@ from pydantic import BaseModel
 BASE_DIR = Path(__file__).resolve().parent
 DOWNLOAD_DIR = BASE_DIR / "downloads"
 DOWNLOAD_DIR.mkdir(exist_ok=True)
+
+# 작업 목록은 메모리 기반이라 서버 재시작 후에는 이전 파일에 접근할 수 없음 — 시작 시 정리
+for _stale in DOWNLOAD_DIR.iterdir():
+    if _stale.is_dir():
+        shutil.rmtree(_stale, ignore_errors=True)
+    elif _stale.suffix == ".zip":
+        _stale.unlink(missing_ok=True)
 
 FFMPEG = shutil.which("ffmpeg") or "/opt/homebrew/bin/ffmpeg"
 VIDEO_ID_RE = re.compile(r"^[A-Za-z0-9_-]{6,20}$")
@@ -187,6 +195,8 @@ def api_delete_job(job_id: str) -> dict:
             jobs.pop(job_id)
             shutil.rmtree(DOWNLOAD_DIR / job_id, ignore_errors=True)
             (DOWNLOAD_DIR / f"{job_id}.zip").unlink(missing_ok=True)
+            for stale in DOWNLOAD_DIR.glob("multi_*.zip"):
+                stale.unlink(missing_ok=True)
             return {"ok": True}
     raise HTTPException(status_code=400, detail="진행 중인 작업은 삭제할 수 없습니다")
 
@@ -203,6 +213,30 @@ def _safe_job_file(job_id: str, filename: str) -> Path:
 def get_file(job_id: str, filename: str) -> FileResponse:
     path = _safe_job_file(job_id, filename)
     return FileResponse(path, filename=path.name, media_type="application/octet-stream")
+
+
+@app.get("/api/zip")
+def get_multi_zip(ids: str) -> FileResponse:
+    job_ids = [i.strip() for i in ids.split(",") if i.strip()]
+    with jobs_lock:
+        picked = [jobs[i] for i in job_ids if i in jobs and jobs[i]["status"] == "done"]
+    if not picked:
+        raise HTTPException(status_code=404, detail="완료된 작업이 없습니다")
+    key = hashlib.sha256(",".join(sorted(j["id"] for j in picked)).encode()).hexdigest()[:16]
+    zip_path = DOWNLOAD_DIR / f"multi_{key}.zip"
+    if not zip_path.exists():
+        used: set[str] = set()
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zf:
+            for j in picked:
+                for name in j["files"]:
+                    arc, n = name, 1
+                    while arc in used:
+                        p = Path(name)
+                        arc = f"{p.stem} ({n}){p.suffix}"
+                        n += 1
+                    used.add(arc)
+                    zf.write(DOWNLOAD_DIR / j["id"] / name, arcname=arc)
+    return FileResponse(zip_path, filename="DownTube_모음.zip", media_type="application/zip")
 
 
 @app.get("/api/jobs/{job_id}/zip")
