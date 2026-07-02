@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "downtube",
+      "runtimeExecutable": ".venv/bin/uvicorn",
+      "runtimeArgs": ["app:app", "--host", "0.0.0.0", "--port", "8756"],
+      "port": 8756
+    }
+  ]
+}

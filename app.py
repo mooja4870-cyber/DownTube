@@ -1,15 +1,15 @@
-"""DownTube — 유튜브 영상/재생목록/채널 다운로드 웹 앱 (mp4/mp3)."""
+"""DownTube — 유튜브 탐색·검색 후 선택한 영상을 mp4/mp3로 다운로드하는 웹 앱."""
 
 import hashlib
 import hmac
 import os
+import re
 import shutil
 import threading
 import time
 import uuid
 import zipfile
 from pathlib import Path
-from urllib.parse import quote
 
 import yt_dlp
 from fastapi import FastAPI, HTTPException, Request
@@ -23,11 +23,17 @@ DOWNLOAD_DIR.mkdir(exist_ok=True)
 PASSWORD = os.environ.get("DOWNTUBE_PASSWORD", "downtube1234")
 _SECRET = hashlib.sha256(f"downtube-salt::{PASSWORD}".encode()).digest()
 FFMPEG = shutil.which("ffmpeg") or "/opt/homebrew/bin/ffmpeg"
+VIDEO_ID_RE = re.compile(r"^[A-Za-z0-9_-]{6,20}$")
 
 app = FastAPI(title="DownTube")
 
 jobs: dict[str, dict] = {}
 jobs_lock = threading.Lock()
+
+# 검색 결과 캐시: {"query::count": (timestamp, results)}
+_search_cache: dict[str, tuple[float, list]] = {}
+_search_lock = threading.Lock()
+SEARCH_TTL = 600
 
 
 def _token() -> str:
@@ -45,7 +51,9 @@ class LoginReq(BaseModel):
 
 
 class DownloadReq(BaseModel):
-    url: str
+    id: str
+    title: str = ""
+    channel: str = ""
     fmt: str = "mp4"      # mp4 | mp3
     quality: str = "best"  # best | 1080 | 720 | 480
 
@@ -58,23 +66,18 @@ def _final_files(outdir: Path) -> list[str]:
     )
 
 
-def run_download(job_id: str, url: str, fmt: str, quality: str) -> None:
+def run_download(job_id: str, video_id: str, fmt: str, quality: str) -> None:
     job = jobs[job_id]
+    url = f"https://www.youtube.com/watch?v={video_id}"
     outdir = DOWNLOAD_DIR / job_id
     outdir.mkdir(parents=True, exist_ok=True)
-    done_ids: set[str] = set()
 
     def hook(d: dict) -> None:
         if d["status"] == "downloading":
             total = d.get("total_bytes") or d.get("total_bytes_estimate") or 0
             got = d.get("downloaded_bytes") or 0
-            job["current_file"] = Path(d.get("filename") or "").name
             job["file_progress"] = round(got / total * 100, 1) if total else 0
         elif d["status"] == "finished":
-            vid = (d.get("info_dict") or {}).get("id")
-            if vid:
-                done_ids.add(vid)
-                job["completed"] = len(done_ids)
             job["file_progress"] = 100
 
     def pp_hook(d: dict) -> None:
@@ -84,25 +87,11 @@ def run_download(job_id: str, url: str, fmt: str, quality: str) -> None:
             job["message"] = ""
 
     try:
-        # 제목/영상 수를 빠르게 파악 (재생목록·채널은 flat 추출)
-        with yt_dlp.YoutubeDL(
-            {"quiet": True, "no_warnings": True, "extract_flat": True, "skip_download": True}
-        ) as probe:
-            info = probe.extract_info(url, download=False)
-        if info and info.get("_type") == "playlist":
-            entries = [e for e in (info.get("entries") or []) if e]
-            job["title"] = info.get("title") or "재생목록"
-            job["total"] = info.get("playlist_count") or len(entries) or 1
-        else:
-            job["title"] = (info or {}).get("title") or url
-            job["total"] = 1
-        job["status"] = "downloading"
-
         ydl_opts: dict = {
             "outtmpl": str(outdir / "%(title).150B [%(id)s].%(ext)s"),
             "progress_hooks": [hook],
             "postprocessor_hooks": [pp_hook],
-            "ignoreerrors": "only_download",
+            "noplaylist": True,
             "quiet": True,
             "no_warnings": True,
             "ffmpeg_location": FFMPEG,
@@ -119,14 +108,16 @@ def run_download(job_id: str, url: str, fmt: str, quality: str) -> None:
             ydl_opts["format"] = f"bv*{h}[ext=mp4]+ba[ext=m4a]/b{h}[ext=mp4]/b{h}/b"
             ydl_opts["merge_output_format"] = "mp4"
 
+        job["status"] = "downloading"
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+            info = ydl.extract_info(url, download=True)
+        if info and not job["title"]:
+            job["title"] = info.get("title") or url
 
         files = _final_files(outdir)
         if not files:
-            raise RuntimeError("다운로드된 파일이 없습니다. URL을 확인해 주세요.")
+            raise RuntimeError("다운로드된 파일이 없습니다.")
         job["files"] = files
-        job["completed"] = job["total"]
         job["status"] = "done"
     except Exception as exc:  # noqa: BLE001 — 작업 실패 사유를 UI로 전달
         job["status"] = "error"
@@ -147,25 +138,59 @@ def login(body: LoginReq) -> JSONResponse:
     return resp
 
 
+@app.get("/api/search")
+def api_search(request: Request, q: str, count: int = 18) -> list[dict]:
+    check_auth(request)
+    q = q.strip()
+    if not q:
+        raise HTTPException(status_code=400, detail="검색어를 입력해 주세요")
+    n = max(1, min(count, 50))
+    key = f"{q}::{n}"
+    now = time.time()
+    with _search_lock:
+        hit = _search_cache.get(key)
+        if hit and now - hit[0] < SEARCH_TTL:
+            return hit[1]
+
+    with yt_dlp.YoutubeDL(
+        {"quiet": True, "no_warnings": True, "extract_flat": True, "skip_download": True}
+    ) as ydl:
+        info = ydl.extract_info(f"ytsearch{n}:{q}", download=False)
+
+    results = []
+    for e in (info or {}).get("entries") or []:
+        if not e or not e.get("id"):
+            continue
+        results.append({
+            "id": e["id"],
+            "title": e.get("title") or "",
+            "channel": e.get("channel") or e.get("uploader") or "",
+            "duration": e.get("duration"),
+            "views": e.get("view_count"),
+            "thumb": f"https://i.ytimg.com/vi/{e['id']}/mqdefault.jpg",
+        })
+    with _search_lock:
+        _search_cache[key] = (now, results)
+    return results
+
+
 @app.post("/api/download")
 def api_download(req: DownloadReq, request: Request) -> dict:
     check_auth(request)
-    if not req.url.strip().lower().startswith(("http://", "https://")):
-        raise HTTPException(status_code=400, detail="올바른 URL을 입력해 주세요")
+    if not VIDEO_ID_RE.match(req.id):
+        raise HTTPException(status_code=400, detail="올바르지 않은 영상 ID입니다")
     if req.fmt not in ("mp4", "mp3"):
         raise HTTPException(status_code=400, detail="지원하지 않는 형식입니다")
     job_id = uuid.uuid4().hex[:12]
     with jobs_lock:
         jobs[job_id] = {
             "id": job_id,
-            "url": req.url.strip(),
+            "video_id": req.id,
             "fmt": req.fmt,
             "quality": req.quality,
             "status": "preparing",
-            "title": "",
-            "total": 0,
-            "completed": 0,
-            "current_file": "",
+            "title": req.title.strip(),
+            "channel": req.channel.strip(),
             "file_progress": 0,
             "message": "",
             "files": [],
@@ -173,7 +198,7 @@ def api_download(req: DownloadReq, request: Request) -> dict:
             "created": time.time(),
         }
     threading.Thread(
-        target=run_download, args=(job_id, req.url.strip(), req.fmt, req.quality), daemon=True
+        target=run_download, args=(job_id, req.id, req.fmt, req.quality), daemon=True
     ).start()
     return {"job_id": job_id}
 
@@ -193,6 +218,7 @@ def api_delete_job(job_id: str, request: Request) -> dict:
         if job and job["status"] in ("done", "error"):
             jobs.pop(job_id)
             shutil.rmtree(DOWNLOAD_DIR / job_id, ignore_errors=True)
+            (DOWNLOAD_DIR / f"{job_id}.zip").unlink(missing_ok=True)
             return {"ok": True}
     raise HTTPException(status_code=400, detail="진행 중인 작업은 삭제할 수 없습니다")
 

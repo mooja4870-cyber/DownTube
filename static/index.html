@@ -14,23 +14,100 @@
   body {
     background: var(--bg); color: var(--text); min-height: 100vh;
     font-family: -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", Roboto, sans-serif;
-    padding: 16px 14px calc(24px + env(safe-area-inset-bottom));
     max-width: 560px; margin: 0 auto;
+    padding: 0 0 calc(70px + env(safe-area-inset-bottom));
   }
-  header { display: flex; align-items: center; gap: 10px; margin: 6px 0 18px; }
-  .logo { width: 38px; height: 38px; border-radius: 10px; background: var(--accent);
-    display: flex; align-items: center; justify-content: center; font-size: 20px; }
-  h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  header { display: flex; align-items: center; gap: 9px; padding: 14px 14px 10px;
+    position: sticky; top: 0; background: var(--bg); z-index: 5; }
+  .logo { width: 32px; height: 32px; border-radius: 9px; background: var(--accent);
+    display: flex; align-items: center; justify-content: center; font-size: 16px; flex: none; }
+  h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
   h1 span { color: var(--accent2); }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px;
-    padding: 16px; margin-bottom: 14px; }
-  label { font-size: 13px; color: var(--sub); display: block; margin-bottom: 6px; }
-  input[type=text], input[type=password] {
-    width: 100%; background: var(--card2); border: 1px solid var(--line); color: var(--text);
-    border-radius: 12px; padding: 14px; font-size: 16px; outline: none;
+
+  .searchwrap { padding: 0 14px 10px; position: sticky; top: 56px; background: var(--bg); z-index: 5; }
+  .searchbar { display: flex; gap: 8px; }
+  .searchbar input {
+    flex: 1; background: var(--card2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 22px; padding: 12px 18px; font-size: 16px; outline: none; min-width: 0;
   }
-  input:focus { border-color: var(--accent2); }
-  .row { display: flex; gap: 8px; margin-top: 12px; }
+  .searchbar input:focus { border-color: var(--accent2); }
+  .searchbar button { flex: none; width: 46px; border: 0; border-radius: 50%;
+    background: var(--accent); color: #fff; font-size: 17px; }
+
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 14px 10px;
+    scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chips button { flex: none; border: 1px solid var(--line); background: var(--card2);
+    color: var(--text); border-radius: 18px; padding: 8px 15px; font-size: 14px; font-weight: 600; }
+  .chips button.on { background: #fff; color: #111; border-color: #fff; }
+
+  .grid { padding: 4px 14px; display: flex; flex-direction: column; gap: 16px; }
+  .vcard { border-radius: 14px; overflow: hidden; background: var(--card); border: 1px solid var(--line); }
+  .thumbwrap { position: relative; aspect-ratio: 16/9; background: var(--card2); }
+  .thumbwrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .dur { position: absolute; right: 8px; bottom: 8px; background: rgba(0,0,0,.8);
+    color: #fff; font-size: 12px; font-weight: 700; padding: 2px 6px; border-radius: 5px; }
+  .vinfo { padding: 10px 12px 12px; }
+  .vtitle { font-size: 14.5px; font-weight: 700; line-height: 1.35;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .vmeta { font-size: 12.5px; color: var(--sub); margin-top: 5px; }
+  .loading, .empty { text-align: center; color: var(--sub); font-size: 14px; padding: 40px 0; }
+  .spinner { width: 26px; height: 26px; border: 3px solid var(--card2); border-top-color: var(--accent);
+    border-radius: 50%; margin: 0 auto 12px; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .more { margin: 6px 14px 14px; width: calc(100% - 28px); background: var(--card2);
+    border: 1px solid var(--line); color: var(--text); border-radius: 12px; padding: 13px;
+    font-size: 15px; font-weight: 700; }
+
+  /* 다운로드 뷰 */
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    padding: 16px; margin: 4px 14px 14px; }
+  label { font-size: 13px; color: var(--sub); display: block; margin-bottom: 6px; }
+  .job { border-top: 1px solid var(--line); padding: 13px 2px; }
+  .job:first-of-type { border-top: 0; }
+  .jtitle { font-size: 15px; font-weight: 700; word-break: break-all; }
+  .jmeta { font-size: 12px; color: var(--sub); margin-top: 3px; }
+  .bar { height: 6px; background: var(--card2); border-radius: 3px; margin-top: 9px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; transition: width .4s; }
+  .files { margin-top: 9px; display: flex; flex-direction: column; gap: 7px; }
+  .files a { display: block; background: var(--card2); border: 1px solid var(--line);
+    color: var(--text); text-decoration: none; border-radius: 10px; padding: 11px 12px;
+    font-size: 13.5px; word-break: break-all; }
+  .files a b { color: var(--ok); font-weight: 800; margin-right: 6px; }
+  .status-done { color: var(--ok); } .status-error { color: var(--err); }
+  .del { float: right; background: none; border: 0; color: var(--sub); font-size: 13px; padding: 2px 4px; }
+
+  /* 하단 내비게이션 */
+  nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 8;
+    background: rgba(20,23,29,.97); border-top: 1px solid var(--line);
+    display: flex; padding-bottom: env(safe-area-inset-bottom); }
+  nav { max-width: 560px; margin: 0 auto; }
+  nav button { flex: 1; background: none; border: 0; color: var(--sub); padding: 10px 0 9px;
+    font-size: 11.5px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  nav button .ico { font-size: 20px; line-height: 1; position: relative; }
+  nav button.on { color: var(--accent2); }
+  .badge { position: absolute; top: -5px; right: -13px; background: var(--accent); color: #fff;
+    font-size: 10px; font-weight: 800; border-radius: 9px; padding: 1px 5px; min-width: 16px; }
+
+  /* 바텀 시트 */
+  #backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 9;
+    opacity: 0; pointer-events: none; transition: opacity .25s; }
+  #backdrop.show { opacity: 1; pointer-events: auto; }
+  #sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; max-width: 560px; margin: 0 auto;
+    background: var(--card); border-radius: 20px 20px 0 0; border: 1px solid var(--line);
+    transform: translateY(105%); transition: transform .28s; padding: 8px 16px calc(20px + env(safe-area-inset-bottom)); }
+  #sheet.show { transform: translateY(0); }
+  .grip { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 4px auto 12px; }
+  .sheet-thumb { position: relative; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; background: #000; }
+  .sheet-thumb img, .sheet-thumb iframe { width: 100%; height: 100%; object-fit: cover; display: block; border: 0; }
+  .playbtn { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,.25); border: 0; }
+  .playbtn i { width: 58px; height: 58px; border-radius: 50%; background: rgba(255,59,48,.95);
+    display: flex; align-items: center; justify-content: center; font-style: normal; font-size: 22px; color: #fff; }
+  .sheet-title { font-size: 15.5px; font-weight: 700; line-height: 1.35; margin-top: 12px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .sheet-meta { font-size: 12.5px; color: var(--sub); margin-top: 4px; }
+  .row { display: flex; gap: 8px; margin-top: 14px; }
   .seg { display: flex; flex: 1; background: var(--card2); border-radius: 12px; padding: 4px; }
   .seg button { flex: 1; border: 0; background: transparent; color: var(--sub); padding: 10px 0;
     border-radius: 9px; font-size: 15px; font-weight: 700; }
@@ -40,41 +117,58 @@
   .go { width: 100%; margin-top: 14px; background: var(--accent); color: #fff; border: 0;
     border-radius: 12px; padding: 15px; font-size: 17px; font-weight: 800; }
   .go:disabled { opacity: .5; }
-  .hint { font-size: 12px; color: var(--sub); margin-top: 10px; line-height: 1.5; }
-  .job { border-top: 1px solid var(--line); padding: 13px 2px; }
-  .job:first-of-type { border-top: 0; }
-  .jtitle { font-size: 15px; font-weight: 700; word-break: break-all; }
-  .jmeta { font-size: 12px; color: var(--sub); margin-top: 3px; }
-  .bar { height: 6px; background: var(--card2); border-radius: 3px; margin-top: 9px; overflow: hidden; }
-  .bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px;
-    transition: width .4s; }
-  .files { margin-top: 9px; display: flex; flex-direction: column; gap: 7px; }
-  .files a { display: block; background: var(--card2); border: 1px solid var(--line);
-    color: var(--text); text-decoration: none; border-radius: 10px; padding: 11px 12px;
-    font-size: 13.5px; word-break: break-all; }
-  .files a b { color: var(--ok); font-weight: 800; margin-right: 6px; }
-  .zipbtn { text-align: center; font-weight: 800; border-color: var(--ok) !important; }
-  .status-done { color: var(--ok); } .status-error { color: var(--err); }
-  .del { float: right; background: none; border: 0; color: var(--sub); font-size: 13px; padding: 2px 4px; }
-  .empty { text-align: center; color: var(--sub); font-size: 13.5px; padding: 18px 0; }
-  #login { position: fixed; inset: 0; background: var(--bg); z-index: 10; display: none;
+
+  #login { position: fixed; inset: 0; background: var(--bg); z-index: 20; display: none;
     flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
-  #login .card { width: 100%; max-width: 380px; }
-  .toast { position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%);
+  #login .card { width: 100%; max-width: 380px; margin: 0; }
+  #login input { width: 100%; background: var(--card2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 12px; padding: 14px; font-size: 16px; outline: none; }
+  .toast { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%);
     background: #333a46; color: #fff; padding: 11px 18px; border-radius: 12px; font-size: 14px;
-    opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 20; max-width: 90%; }
+    opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 30; max-width: 90%; }
   .toast.show { opacity: 1; }
 </style>
 </head>
 <body>
-<header>
-  <div class="logo">▶</div>
-  <h1>Down<span>Tube</span></h1>
-</header>
 
-<div class="card">
-  <label>유튜브 URL (영상 · 재생목록 · 채널)</label>
-  <input type="text" id="url" placeholder="https://www.youtube.com/..." autocomplete="off">
+<div id="view-browse">
+  <header>
+    <div class="logo">▶</div>
+    <h1>Down<span>Tube</span></h1>
+  </header>
+  <div class="searchwrap">
+    <div class="searchbar">
+      <input type="search" id="q" placeholder="영상 검색" autocomplete="off" enterkeyhint="search">
+      <button id="searchbtn" aria-label="검색">⌕</button>
+    </div>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="grid" id="grid"></div>
+  <button class="more" id="more" style="display:none">더 보기</button>
+</div>
+
+<div id="view-dl" style="display:none">
+  <header>
+    <div class="logo">▶</div>
+    <h1>다운로드</h1>
+  </header>
+  <div class="card">
+    <label>다운로드 작업 — 완료된 파일을 누르면 핸드폰에 저장됩니다</label>
+    <div id="jobs"><div class="empty">아직 작업이 없습니다</div></div>
+  </div>
+</div>
+
+<nav>
+  <button id="nav-browse" class="on"><span class="ico">⌂</span>탐색</button>
+  <button id="nav-dl"><span class="ico">↓<span class="badge" id="badge" style="display:none">0</span></span>다운로드</button>
+</nav>
+
+<div id="backdrop"></div>
+<div id="sheet">
+  <div class="grip"></div>
+  <div class="sheet-thumb" id="sheet-thumb"></div>
+  <div class="sheet-title" id="sheet-title"></div>
+  <div class="sheet-meta" id="sheet-meta"></div>
   <div class="row">
     <div class="seg" id="fmtseg">
       <button data-fmt="mp4" class="on">MP4 영상</button>
@@ -87,13 +181,7 @@
       <option value="480">480p</option>
     </select>
   </div>
-  <button class="go" id="go">다운로드</button>
-  <div class="hint">재생목록·채널 URL을 넣으면 포함된 모든 영상을 받습니다.<br>본인 소유 또는 개인적 이용 범위 내에서만 사용하세요.</div>
-</div>
-
-<div class="card">
-  <label>다운로드 작업</label>
-  <div id="jobs"><div class="empty">아직 작업이 없습니다</div></div>
+  <button class="go" id="dlbtn">다운로드</button>
 </div>
 
 <div id="login">
@@ -109,19 +197,37 @@
 
 <script>
 const $ = s => document.querySelector(s);
-let fmt = "mp4";
+const CATS = [
+  ["인기", "오늘 인기 영상"],
+  ["음악", "인기 음악"],
+  ["뉴스", "오늘 뉴스"],
+  ["예능", "인기 예능"],
+  ["스포츠", "스포츠 하이라이트"],
+  ["게임", "인기 게임 영상"],
+  ["영화", "영화 명장면"],
+  ["먹방", "인기 먹방"],
+  ["여행", "여행 브이로그"],
+  ["키즈", "인기 키즈 영상"],
+];
+let curQuery = CATS[0][1], curCount = 18, fmt = "mp4", sel = null, videos = [];
 
 function toast(msg) {
   const t = $("#toast"); t.textContent = msg; t.classList.add("show");
   setTimeout(() => t.classList.remove("show"), 2600);
 }
-
-$("#fmtseg").addEventListener("click", e => {
-  const b = e.target.closest("button"); if (!b) return;
-  fmt = b.dataset.fmt;
-  document.querySelectorAll("#fmtseg button").forEach(x => x.classList.toggle("on", x === b));
-  $("#quality").style.display = fmt === "mp3" ? "none" : "";
-});
+function esc(s) { return String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
+function fmtDur(s) {
+  if (s == null) return "";
+  s = Math.round(s);
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
+  return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(sec).padStart(2, "0");
+}
+function fmtViews(v) {
+  if (v == null) return "";
+  if (v >= 1e8) return "조회수 " + (v / 1e8).toFixed(1).replace(/\.0$/, "") + "억회";
+  if (v >= 1e4) return "조회수 " + (v / 1e4).toFixed(1).replace(/\.0$/, "") + "만회";
+  return "조회수 " + v.toLocaleString() + "회";
+}
 
 async function api(path, opts = {}) {
   const r = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
@@ -130,72 +236,169 @@ async function api(path, opts = {}) {
   return r.json();
 }
 
+/* ---------- 로그인 ---------- */
 $("#loginbtn").onclick = async () => {
   try {
     await api("/api/login", { method: "POST", body: JSON.stringify({ password: $("#pw").value }) });
-    $("#login").style.display = "none"; $("#pw").value = ""; poll();
+    $("#login").style.display = "none"; $("#pw").value = "";
+    loadFeed(curQuery); pollJobs();
   } catch (e) { if (e.message !== "auth") toast(e.message); }
 };
 $("#pw").addEventListener("keydown", e => { if (e.key === "Enter") $("#loginbtn").click(); });
 
-$("#go").onclick = async () => {
-  const url = $("#url").value.trim();
-  if (!url) return toast("URL을 입력해 주세요");
-  $("#go").disabled = true;
+/* ---------- 탐색 (카테고리 + 검색) ---------- */
+const chipsBox = $("#chips");
+chipsBox.innerHTML = CATS.map(([name, q], i) =>
+  `<button data-q="${esc(q)}" class="${i === 0 ? "on" : ""}">${esc(name)}</button>`).join("");
+chipsBox.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  chipsBox.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  $("#q").value = "";
+  loadFeed(b.dataset.q);
+});
+
+function doSearch() {
+  const q = $("#q").value.trim();
+  if (!q) return;
+  chipsBox.querySelectorAll("button").forEach(x => x.classList.remove("on"));
+  loadFeed(q);
+}
+$("#searchbtn").onclick = doSearch;
+$("#q").addEventListener("keydown", e => { if (e.key === "Enter") { e.target.blur(); doSearch(); } });
+
+async function loadFeed(query, count = 18) {
+  curQuery = query; curCount = count;
+  const grid = $("#grid");
+  $("#more").style.display = "none";
+  grid.innerHTML = '<div class="loading"><div class="spinner"></div>영상을 불러오는 중...</div>';
   try {
-    await api("/api/download", { method: "POST",
-      body: JSON.stringify({ url, fmt, quality: $("#quality").value }) });
-    $("#url").value = ""; toast("다운로드를 시작했습니다"); poll();
+    videos = await api(`/api/search?q=${encodeURIComponent(query)}&count=${count}`);
+    if (!videos.length) { grid.innerHTML = '<div class="empty">검색 결과가 없습니다</div>'; return; }
+    grid.innerHTML = videos.map((v, i) => `
+      <div class="vcard" data-i="${i}">
+        <div class="thumbwrap">
+          <img src="${esc(v.thumb)}" loading="lazy" alt="">
+          ${v.duration != null ? `<span class="dur">${fmtDur(v.duration)}</span>` : ""}
+        </div>
+        <div class="vinfo">
+          <div class="vtitle">${esc(v.title)}</div>
+          <div class="vmeta">${esc(v.channel)}${v.views != null ? " · " + fmtViews(v.views) : ""}</div>
+        </div>
+      </div>`).join("");
+    $("#more").style.display = count < 50 ? "" : "none";
+    window.scrollTo({ top: 0 });
+  } catch (e) {
+    if (e.message !== "auth") grid.innerHTML = `<div class="empty">${esc(e.message)}</div>`;
+  }
+}
+$("#more").onclick = () => loadFeed(curQuery, Math.min(curCount + 18, 50));
+$("#grid").addEventListener("click", e => {
+  const card = e.target.closest(".vcard"); if (!card) return;
+  openSheet(videos[+card.dataset.i]);
+});
+
+/* ---------- 바텀 시트 (선택 → 다운로드) ---------- */
+function openSheet(v) {
+  sel = v;
+  $("#sheet-thumb").innerHTML = `
+    <img src="https://i.ytimg.com/vi/${esc(v.id)}/hqdefault.jpg" alt="">
+    <button class="playbtn" id="preview"><i>▶</i></button>`;
+  $("#sheet-title").textContent = v.title;
+  $("#sheet-meta").textContent = [v.channel, fmtViews(v.views), fmtDur(v.duration)].filter(Boolean).join(" · ");
+  $("#preview").onclick = () => {
+    $("#sheet-thumb").innerHTML =
+      `<iframe src="https://www.youtube.com/embed/${esc(v.id)}?autoplay=1&playsinline=1"
+        allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>`;
+  };
+  $("#backdrop").classList.add("show");
+  $("#sheet").classList.add("show");
+}
+function closeSheet() {
+  $("#backdrop").classList.remove("show");
+  $("#sheet").classList.remove("show");
+  $("#sheet-thumb").innerHTML = "";   // 임베드 재생 중지
+  sel = null;
+}
+$("#backdrop").onclick = closeSheet;
+
+$("#fmtseg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  fmt = b.dataset.fmt;
+  document.querySelectorAll("#fmtseg button").forEach(x => x.classList.toggle("on", x === b));
+  $("#quality").style.display = fmt === "mp3" ? "none" : "";
+});
+
+$("#dlbtn").onclick = async () => {
+  if (!sel) return;
+  $("#dlbtn").disabled = true;
+  try {
+    await api("/api/download", { method: "POST", body: JSON.stringify({
+      id: sel.id, title: sel.title, channel: sel.channel, fmt, quality: $("#quality").value }) });
+    closeSheet();
+    toast("다운로드를 시작했습니다 — 하단 '다운로드' 탭에서 확인");
+    pollJobs();
   } catch (e) { if (e.message !== "auth") toast(e.message); }
-  $("#go").disabled = false;
+  $("#dlbtn").disabled = false;
 };
 
-function esc(s) { return s.replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
+/* ---------- 뷰 전환 ---------- */
+function setView(name) {
+  $("#view-browse").style.display = name === "browse" ? "" : "none";
+  $("#view-dl").style.display = name === "dl" ? "" : "none";
+  $("#nav-browse").classList.toggle("on", name === "browse");
+  $("#nav-dl").classList.toggle("on", name === "dl");
+  window.scrollTo({ top: 0 });
+}
+$("#nav-browse").onclick = () => setView("browse");
+$("#nav-dl").onclick = () => setView("dl");
 
-function render(list) {
+/* ---------- 다운로드 작업 목록 ---------- */
+function renderJobs(list) {
   const box = $("#jobs");
+  const active = list.filter(j => j.status === "preparing" || j.status === "downloading").length;
+  const badge = $("#badge");
+  badge.style.display = active ? "" : "none";
+  badge.textContent = active;
   if (!list.length) { box.innerHTML = '<div class="empty">아직 작업이 없습니다</div>'; return; }
   box.innerHTML = list.map(j => {
-    const pct = j.status === "done" ? 100
-      : j.total > 1 ? Math.min(99, (j.completed / j.total) * 100) : j.file_progress;
     const stat = { preparing: "준비 중...", downloading: "다운로드 중", done: "완료", error: "오류" }[j.status] || j.status;
     let body = "";
     if (j.status === "downloading" || j.status === "preparing") {
-      body = `<div class="bar"><i style="width:${pct}%"></i></div>
-        <div class="jmeta">${j.total > 1 ? `${j.completed}/${j.total}개 완료 · ` : ""}${j.file_progress}% ${esc(j.message || "")} ${esc(j.current_file || "")}</div>`;
+      body = `<div class="bar"><i style="width:${j.file_progress}%"></i></div>
+        <div class="jmeta">${j.file_progress}% ${esc(j.message || "")}</div>`;
     } else if (j.status === "done") {
-      const links = j.files.map(f =>
-        `<a href="/files/${j.id}/${encodeURIComponent(f)}" download><b>↓</b>${esc(f)}</a>`).join("");
-      const zip = j.files.length > 1
-        ? `<a class="zipbtn" href="/api/jobs/${j.id}/zip"><b>⬇</b>전체 ZIP으로 받기 (${j.files.length}개)</a>` : "";
-      body = `<div class="files">${links}${zip}</div>`;
+      body = `<div class="files">${j.files.map(f =>
+        `<a href="/files/${j.id}/${encodeURIComponent(f)}" download><b>↓</b>${esc(f)}</a>`).join("")}</div>`;
     } else if (j.status === "error") {
       body = `<div class="jmeta status-error">${esc(j.error)}</div>`;
     }
     const del = (j.status === "done" || j.status === "error")
       ? `<button class="del" onclick="delJob('${j.id}')">삭제</button>` : "";
     return `<div class="job">${del}
-      <div class="jtitle">${esc(j.title || j.url)}</div>
-      <div class="jmeta"><span class="status-${j.status}">${stat}</span> · ${j.fmt.toUpperCase()}${j.fmt === "mp4" ? " · " + (j.quality === "best" ? "최고화질" : j.quality + "p") : ""}</div>
+      <div class="jtitle">${esc(j.title || j.video_id)}</div>
+      <div class="jmeta"><span class="status-${j.status}">${stat}</span> · ${j.fmt.toUpperCase()}${j.fmt === "mp4" ? " · " + (j.quality === "best" ? "최고화질" : j.quality + "p") : ""}${j.channel ? " · " + esc(j.channel) : ""}</div>
       ${body}</div>`;
   }).join("");
 }
 
 async function delJob(id) {
-  try { await api(`/api/jobs/${id}`, { method: "DELETE" }); poll(); }
+  try { await api(`/api/jobs/${id}`, { method: "DELETE" }); pollJobs(); }
   catch (e) { if (e.message !== "auth") toast(e.message); }
 }
 
 let timer = null;
-async function poll() {
+async function pollJobs() {
   try {
     const list = await api("/api/jobs");
-    render(list);
+    renderJobs(list);
     clearTimeout(timer);
-    timer = setTimeout(poll, list.some(j => j.status === "preparing" || j.status === "downloading") ? 1500 : 5000);
+    timer = setTimeout(pollJobs,
+      list.some(j => j.status === "preparing" || j.status === "downloading") ? 1500 : 6000);
   } catch (e) { /* 로그인 오버레이 표시됨 */ }
 }
-poll();
+
+loadFeed(curQuery);
+pollJobs();
 </script>
 </body>
 </html>
