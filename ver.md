@@ -1,5 +1,30 @@
 # Version History
 
+## v3.4.2
+
+Date: 2026-07-03
+
+### 변경 내용
+
+* **APK 저장 파일 확장자 버그 수정** — 안드로이드 에뮬레이터(Android 14)에서 설치→접속→검색→다운로드 전 과정을 실기기 수준으로 검증하던 중 발견
+  * 증상: 핸드폰에 저장된 파일이 `.mp3`/`.mp4` 대신 `.bin` 확장자로 저장되어 재생 불가
+  * 원인: 서버가 파일을 `application/octet-stream`으로 보내면 안드로이드 `URLUtil.guessFileName`이 확장자를 `.bin`으로 치환
+  * 앱: Content-Disposition/URL에서 파일명을 직접 추출하도록 수정 (구버전 서버와도 호환)
+  * 서버: 파일 MIME 타입을 확장자 기반(audio/mpeg, video/mp4 등)으로 정확히 전송
+* APK 버전 3.4.2(342)
+
+### 수정 파일
+
+* android/java/com/downtube/app/MainActivity.java (파일명 추출 로직)
+* app.py (MIME 타입 수정)
+* android/AndroidManifest.xml (버전), DownTube.apk (재빌드)
+
+### 검증 내용 (Android 14 에뮬레이터, 실제 서버·고정 주소 경유)
+
+* APK 설치 Success, 실행·크래시 없음, 서버 주소 입력 → 고정 주소 접속 → 피드/검색 정상
+* 영상 선택 → MP3 다운로드 → 파일 링크 탭 → 핸드폰 Download 폴더에 `.mp3` 확장자로 저장 확인 (유효한 MPEG 오디오)
+* apksigner 서명(v2+v3)·zipalign·리소스 비압축 검증 통과
+
 ## v3.4.1
 
 Date: 2026-07-03

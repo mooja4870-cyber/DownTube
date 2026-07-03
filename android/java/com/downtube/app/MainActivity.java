@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.text.InputType;
 import android.webkit.DownloadListener;
-import android.webkit.URLUtil;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -49,8 +48,11 @@ public class MainActivity extends Activity {
             public void onDownloadStart(String url, String userAgent, String contentDisposition,
                                         String mimeType, long contentLength) {
                 try {
-                    String name = URLUtil.guessFileName(url, contentDisposition, mimeType);
+                    // URLUtil.guessFileName은 mime이 octet-stream이면 확장자를 .bin으로 바꿔버리므로
+                    // Content-Disposition과 URL 경로에서 직접 파일명을 추출한다.
+                    String name = fileNameFrom(url, contentDisposition);
                     DownloadManager.Request r = new DownloadManager.Request(Uri.parse(url));
+                    if (mimeType != null && !mimeType.isEmpty()) r.setMimeType(mimeType);
                     r.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                     r.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, name);
                     ((DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE)).enqueue(r);
@@ -69,6 +71,24 @@ public class MainActivity extends Activity {
         } else {
             web.loadUrl(base);
         }
+    }
+
+    /** Content-Disposition의 filename 항목 → URL 경로 순으로 파일명 추출 */
+    private static String fileNameFrom(String url, String contentDisposition) {
+        try {
+            if (contentDisposition != null) {
+                java.util.regex.Matcher m = java.util.regex.Pattern
+                        .compile("filename\\*=(?:utf-8|UTF-8)''([^;]+)").matcher(contentDisposition);
+                if (m.find()) return java.net.URLDecoder.decode(m.group(1).trim(), "UTF-8");
+                m = java.util.regex.Pattern
+                        .compile("filename=\"?([^\";]+)\"?").matcher(contentDisposition);
+                if (m.find()) return m.group(1).trim();
+            }
+            String seg = Uri.parse(url).getLastPathSegment();
+            if (seg != null && !seg.isEmpty()) return seg;
+        } catch (Exception ignored) {
+        }
+        return "download";
     }
 
     /** 서버 주소 입력/변경 대화상자 */

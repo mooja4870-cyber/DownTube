@@ -1,6 +1,7 @@
 """DownTube — 유튜브 탐색·검색 후 선택한 영상을 mp4/mp3로 다운로드하는 웹 앱."""
 
 import hashlib
+import mimetypes
 import re
 import shutil
 import threading
@@ -212,7 +213,9 @@ def _safe_job_file(job_id: str, filename: str) -> Path:
 @app.get("/files/{job_id}/{filename:path}")
 def get_file(job_id: str, filename: str) -> FileResponse:
     path = _safe_job_file(job_id, filename)
-    return FileResponse(path, filename=path.name, media_type="application/octet-stream")
+    # octet-stream으로 보내면 안드로이드 DownloadManager가 확장자를 .bin으로 바꿔버림
+    mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+    return FileResponse(path, filename=path.name, media_type=mime)
 
 
 @app.get("/api/zip")
