@@ -1,0 +1,9 @@
+name = "downtube"
+main = "worker.js"
+compatibility_date = "2026-01-01"
+
+workers_dev = true
+
+[[kv_namespaces]]
+binding = "TUNNEL"
+id = "4e19a441a27e41f29fe540c6cd0114ba"

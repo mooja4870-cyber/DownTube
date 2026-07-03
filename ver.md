@@ -1,5 +1,31 @@
 # Version History
 
+## v3.4.0
+
+Date: 2026-07-03
+
+### 변경 내용
+
+* **Cloudflare 배포(wrangler)** — 고정 접속 주소 제공
+  * Worker `downtube` 배포: **https://downtube.mooja4870.workers.dev**
+  * 매번 바뀌던 trycloudflare 터널 주소를 KV에 저장하고, 고정 주소 접속 시 현재 터널로 302 리다이렉트
+  * 서버(터널)가 꺼져 있으면 고정 주소에서 실행 안내 문구 표시(503)
+  * `run.sh --tunnel`: 터널 주소 발급 시 KV 자동 갱신 로직 추가 — 핸드폰/APK에는 고정 주소 한 번만 등록하면 됨
+* 참고: 앱 본체(Python+yt-dlp+ffmpeg)는 Workers 실행 환경 특성상 Cloudflare에 올릴 수 없어
+  Mac 서버 + 고정 주소 Worker 구조로 배포함
+
+### 수정 파일
+
+* cloudflare/worker.js, cloudflare/wrangler.toml (신규)
+* run.sh (KV 자동 갱신)
+* README.md (고정 주소 안내)
+
+### 검증 내용
+
+* 고정 주소 → 302 → 터널 → 앱 HTML/검색 API 200 전체 체인 확인
+* 서버 꺼짐 상태에서 고정 주소 503 안내 문구 확인
+* KV 갱신 반영(전파 지연 약 1분 이내) 확인
+
 ## v3.3.1
 
 Date: 2026-07-03
