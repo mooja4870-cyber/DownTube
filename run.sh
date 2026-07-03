@@ -5,7 +5,8 @@
 set -e
 cd "$(dirname "$0")"
 
-export PATH="/opt/homebrew/bin:$PATH"
+# homebrew(cloudflared·ffmpeg)와 node(npx/wrangler) 경로를 명시 — 터미널 외 환경에서도 동작
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 PORT="${DOWNTUBE_PORT:-8756}"
 
 if [[ "$1" == "--tunnel" ]]; then
@@ -17,15 +18,19 @@ if [[ "$1" == "--tunnel" ]]; then
   echo "고정 주소: https://downtube.mooja4870.workers.dev  ← 핸드폰에는 이 주소만 등록하면 됩니다"
   echo ""
   # 터널 주소가 발급되면 Cloudflare KV에 기록해 고정 주소가 항상 최신 터널을 가리키게 함
+  KVLOG=/tmp/downtube_kv.log
   (
     for _ in {1..60}; do
       URL=$(grep -m1 -o 'https://[a-z0-9-]*\.trycloudflare\.com' "$LOG" 2>/dev/null)
       if [[ -n "$URL" ]]; then
-        if (cd cloudflare && npx --yes wrangler kv key put url "$URL" --binding TUNNEL --remote >/dev/null 2>&1); then
-          echo "터널 연결됨: $URL → 고정 주소에 반영 완료"
-        else
-          echo "경고: 고정 주소 갱신 실패 — $URL 로 직접 접속하세요"
-        fi
+        for try in 1 2 3; do
+          if (cd cloudflare && npx --yes wrangler kv key put url "$URL" --binding TUNNEL --remote >"$KVLOG" 2>&1); then
+            echo "터널 연결됨: $URL → 고정 주소에 반영 완료 (반영까지 최대 1분)"
+            break 2
+          fi
+          sleep 5
+        done
+        echo "경고: 고정 주소 갱신 실패(로그: $KVLOG) — $URL 로 직접 접속하세요"
         break
       fi
       sleep 1

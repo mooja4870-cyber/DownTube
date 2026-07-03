@@ -1,5 +1,24 @@
 # Version History
 
+## v3.4.1
+
+Date: 2026-07-03
+
+### 변경 내용
+
+* 버그 수정: `run.sh --tunnel` 실행 시 고정 주소(KV) 갱신이 조용히 실패하던 문제
+  * 원인: run.sh의 PATH에 node/npx 경로(/usr/local/bin)가 없어 터미널 외 환경에서 wrangler 실행 실패
+  * PATH에 /usr/local/bin 추가, KV 갱신 3회 재시도, 실패 로그를 /tmp/downtube_kv.log에 기록
+* 실행 중이던 터널 주소를 KV에 수동 반영하여 고정 주소 즉시 정상화
+
+### 수정 파일
+
+* run.sh (PATH 보강, KV 갱신 재시도·로그)
+
+### 검증 내용
+
+* 고정 주소 → 302 → 실행 중 터널 → 앱 200 및 검색 API 정상 확인
+
 ## v3.4.0
 
 Date: 2026-07-03
