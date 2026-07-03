@@ -1,5 +1,27 @@
 # Version History
 
+## v3.4.3
+
+Date: 2026-07-03
+
+### 변경 내용
+
+* **APK 첫 실행 시 서버 주소 자동 접속** — 매번 주소를 입력해야 하던 불편 해소
+  * 기본 접속 주소를 고정 Cloudflare 주소(https://downtube.mooja4870.workers.dev)로 내장
+  * 저장된 주소가 없으면 곧바로 기본 주소에 접속 (입력 대화상자 생략)
+  * 주소 변경이 필요하면 첫 화면에서 뒤로가기 → 입력창(기본 주소 미리 채워짐)
+* APK 버전 3.4.3(343)
+
+### 수정 파일
+
+* android/java/com/downtube/app/MainActivity.java (DEFAULT_BASE 자동 접속)
+* android/AndroidManifest.xml (버전), DownTube.apk (재빌드)
+* README.md (자동 접속 안내)
+
+### 검증 내용
+
+* 에뮬레이터에 신규 설치 후 실행 → 주소 입력창 없이 피드 자동 로딩 확인
+
 ## v3.4.2
 
 Date: 2026-07-03

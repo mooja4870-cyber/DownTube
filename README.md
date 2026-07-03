@@ -21,9 +21,10 @@
 **다운로드**: <https://github.com/mooja4870-cyber/DownTube/raw/master/DownTube.apk>
 
 1. 핸드폰에서 위 링크로 APK 다운로드 → 설치 (설정에서 '출처를 알 수 없는 앱 허용' 필요)
-2. 앱 실행 → 서버 주소 입력: `https://downtube.mooja4870.workers.dev` (같은 Wi-Fi 전용이면 `http://맥IP:8756`)
+2. 앱 실행 → **고정 주소로 자동 접속** (주소 입력 불필요)
+   - 단, Mac에서 `./run.sh --tunnel` 이 실행 중이어야 화면이 뜬다. 꺼져 있으면 안내 문구가 표시됨
 3. 이후 웹과 동일하게 사용 — 파일은 핸드폰 '다운로드' 폴더에 저장됨
-4. 서버 주소 변경: 첫 화면에서 뒤로가기 버튼을 누르면 주소 입력창이 열림
+4. 서버 주소 변경(예: 같은 Wi-Fi 직접 접속 `http://맥IP:8756`): 첫 화면에서 뒤로가기 버튼 → 주소 입력창
 
 APK 다시 빌드: `./android/build_apk.sh` (Android SDK build-tools 필요)
 

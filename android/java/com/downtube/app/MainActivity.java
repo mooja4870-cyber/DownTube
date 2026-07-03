@@ -21,6 +21,9 @@ import android.widget.Toast;
 
 /** DownTube 서버(웹 앱)를 감싸는 WebView 앱. 파일 다운로드는 안드로이드 DownloadManager로 저장한다. */
 public class MainActivity extends Activity {
+    /** 기본 접속 주소 — 고정 Cloudflare 주소. 첫 실행 시 자동으로 이 주소에 접속한다. */
+    private static final String DEFAULT_BASE = "https://downtube.mooja4870.workers.dev";
+
     private WebView web;
     private SharedPreferences prefs;
 
@@ -65,12 +68,8 @@ public class MainActivity extends Activity {
 
         setContentView(web);
 
-        String base = prefs.getString("base", null);
-        if (base == null) {
-            askServer(null);
-        } else {
-            web.loadUrl(base);
-        }
+        // 저장된 주소가 있으면 그것을, 없으면 기본 고정 주소로 곧바로 접속 (입력 단계 생략)
+        web.loadUrl(prefs.getString("base", DEFAULT_BASE));
     }
 
     /** Content-Disposition의 filename 항목 → URL 경로 순으로 파일명 추출 */
@@ -96,7 +95,7 @@ public class MainActivity extends Activity {
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
         input.setHint("예: http://172.30.1.25:8756");
-        input.setText(prefs.getString("base", ""));
+        input.setText(prefs.getString("base", DEFAULT_BASE));
 
         new AlertDialog.Builder(this)
                 .setTitle("DownTube 서버 주소")
