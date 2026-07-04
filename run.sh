@@ -12,7 +12,12 @@ PORT="${DOWNTUBE_PORT:-8756}"
 if [[ "$1" == "--tunnel" ]]; then
   .venv/bin/uvicorn app:app --host 127.0.0.1 --port "$PORT" &
   SERVER_PID=$!
-  trap 'kill $SERVER_PID 2>/dev/null' EXIT INT TERM
+  # 종료 시: 서버 중지 + KV의 터널 주소 삭제 → 고정 주소가 죽은 터널 대신 "서버 꺼짐" 안내를 표시
+  cleanup() {
+    kill "$SERVER_PID" 2>/dev/null
+    (cd cloudflare && npx --yes wrangler kv key delete url --binding TUNNEL --remote >/dev/null 2>&1) &
+  }
+  trap cleanup EXIT INT TERM
   LOG=$(mktemp /tmp/downtube_tunnel.XXXXXX)
   echo ""
   echo "고정 주소: https://downtube.mooja4870.workers.dev  ← 핸드폰에는 이 주소만 등록하면 됩니다"
