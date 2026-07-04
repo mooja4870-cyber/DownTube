@@ -14,6 +14,17 @@
   핸드폰에는 고정 주소 하나만 등록하면 된다. 서버가 꺼져 있으면 고정 주소가 안내 문구를 보여준다.
 - Worker 배포/수정: `cd cloudflare && npx wrangler deploy` (wrangler 로그인 필요)
 - 포트 변경: `DOWNTUBE_PORT=포트번호`
+
+### 자동 실행 (Mac 로그인 시 항상 켜짐)
+
+```bash
+./cloudflare/install_autostart.sh     # 설치 — 로그인 시 서버+터널 자동 시작, 꺼지면 자동 재시작
+./cloudflare/uninstall_autostart.sh   # 제거
+tail -f /tmp/downtube.out             # 상태/로그 확인
+```
+
+- macOS LaunchAgent(`com.downtube.server`)로 등록되어, 서버·터널이 죽으면 자동 재시작하고 고정 주소(KV)를 갱신한다.
+- 단, **Mac이 켜져 있어야** 하며 절전(잠자기) 상태에서는 외부 접속이 끊긴다(깨어나면 자동 복구).
 - 접속 비밀번호 없음 — 주소를 아는 사람은 누구나 사용 가능 (특히 `--tunnel` 사용 시 주의)
 
 ## 안드로이드 앱 (APK)

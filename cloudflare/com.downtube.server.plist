@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  DownTube 서버 자동 실행 (macOS LaunchAgent)
+  설치:  ./cloudflare/install_autostart.sh
+  제거:  ./cloudflare/uninstall_autostart.sh
+  로그 확인:  tail -f /tmp/downtube.out /tmp/downtube.err
+  Mac 로그인 시 자동 시작하고, 종료·크래시 시 자동 재시작한다.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.downtube.server</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>__RUN_SH__</string>
+    <string>--tunnel</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>__PROJECT_DIR__</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>ThrottleInterval</key>
+  <integer>15</integer>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/downtube.out</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/downtube.err</string>
+</dict>
+</plist>

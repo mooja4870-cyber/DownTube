@@ -1,5 +1,30 @@
 # Version History
 
+## v3.5.0
+
+Date: 2026-07-04
+
+### 변경 내용
+
+* **Mac 서버 자동 실행 (macOS LaunchAgent)** — 매번 수동으로 켜야 하던 번거로움 해소
+  * `cloudflare/install_autostart.sh` / `uninstall_autostart.sh` / `com.downtube.server.plist`
+  * 로그인 시 서버+터널 자동 시작, 종료·크래시 시 자동 재시작(KeepAlive), 고정 주소(KV) 자동 갱신
+* **run.sh 견고성 수정** (자동 실행이 실패하던 근본 원인 해결)
+  * `set -e` 상태에서 `URL=$(grep …)`가 URL 미발급 순간 grep 실패로 스크립트가 즉시 종료되던 버그 → `|| true`로 방지
+  * KV 갱신을 백그라운드 서브셸에서 메인 흐름으로 이동 (launchd에서 서브셸이 불안정하던 문제 해결)
+  * cloudflared를 백그라운드로 돌리고 `wait`로 대기, 종료 시 KV 삭제(동기)
+
+### 수정 파일
+
+* run.sh (KV 갱신 로직 재작성, set -e 버그 수정)
+* cloudflare/com.downtube.server.plist, install_autostart.sh, uninstall_autostart.sh (신규)
+* README.md (자동 실행 안내)
+
+### 검증 내용
+
+* 수동 실행·launchd 실행 양쪽에서 서버 기동 → 터널 연결 → KV 갱신("반영 완료") 확인
+* launchd: state=running, keepalive·runatload 적용, 고정 주소 → 현재 터널 → 앱/검색 API 200 전체 확인
+
 ## v3.4.5
 
 Date: 2026-07-04
