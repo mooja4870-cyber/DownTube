@@ -52,7 +52,8 @@ APK 다시 빌드: `./android/build_apk.sh` (Android SDK build-tools 필요)
 - `app.py` — FastAPI 서버 (yt-dlp 검색 + 다운로드, ffmpeg 변환)
 - `static/index.html` — 모바일 웹 UI (탐색/검색/바텀시트/다운로드 탭)
 - `run.sh` — 실행 스크립트 (로컬 / cloudflared 터널 + 고정 주소 자동 갱신)
-- `cloudflare/` — 고정 주소 Worker (wrangler로 배포, KV에 현재 터널 주소 저장)
+- `cloudflare/` — 고정 주소 Worker (wrangler로 배포, KV에 현재 터널 주소 저장) + Mac 자동 실행(launchd)
+- `vm/` — 클라우드 VM(도커) 배포 — Mac 없이 24시간 작동 ([vm/DEPLOY.md](vm/DEPLOY.md))
 - `android/` — 안드로이드 WebView 앱 소스 및 빌드 스크립트
 - `downloads/` — 서버 측 임시 저장 폴더 (작업 삭제 시 함께 삭제)
 

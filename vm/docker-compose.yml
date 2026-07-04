@@ -1,0 +1,14 @@
+# DownTube 클라우드 VM 배포
+#   CF_API_TOKEN 환경변수만 넣고  docker compose up -d  하면 끝.
+services:
+  downtube:
+    build:
+      context: ..
+      dockerfile: vm/Dockerfile
+    image: downtube:latest
+    restart: unless-stopped
+    environment:
+      - CF_API_TOKEN=${CF_API_TOKEN}
+      # 다른 Cloudflare 계정/KV를 쓸 때만 지정 (기본값은 update_kv.py에 내장)
+      # - CF_ACCOUNT_ID=...
+      # - CF_KV_NAMESPACE=...

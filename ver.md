@@ -1,5 +1,31 @@
 # Version History
 
+## v3.6.0
+
+Date: 2026-07-04
+
+### 변경 내용
+
+* **클라우드 VM(도커) 배포 패키지 추가** — Mac을 꺼도 24시간 작동
+  * `vm/Dockerfile`·`docker-compose.yml`·`entrypoint.sh`·`requirements.txt` — 어느 클라우드 VM(x86/ARM)에서든 `docker compose up -d` 한 번으로 배포
+  * `vm/update_kv.py` — node/wrangler 없이 Cloudflare REST API로 고정 주소(KV) 갱신(토큰 사용)
+  * `vm/DEPLOY.md` — VM 준비·토큰 발급·실행 단계별 안내
+* 컨테이너는 앱 + cloudflared 터널 + KV 자동 갱신을 함께 실행, 기존 고정 주소/앱 그대로 사용
+
+### 한계 (정직한 고지)
+
+* **Cloudflare Workers 자체로는 실행 불가** — Python/yt-dlp/ffmpeg를 못 돌리므로, 실제 다운로드는 VM에서 수행하고 Worker는 고정 주소 중계만 담당
+* **유튜브의 클라우드 IP 차단** 가능성 — 봇 감지로 다운로드가 막힐 수 있으며, 이 경우 쿠키 전달 또는 가정용 IP 방식이 필요 (DEPLOY.md 참고)
+
+### 수정 파일
+
+* vm/** (신규), README.md (vm/ 안내)
+
+### 검증 내용
+
+* 컨테이너와 동일한 파일 레이아웃으로 entrypoint 실행 → 서버 200, 검색 API 정상, cloudflared 터널 발급, update_kv.py 요청 정상(더미 토큰 401 확인 = 요청 구조 정상, 실토큰이면 성공) 로컬 검증
+* (Docker 데몬은 로컬에 없어 이미지 빌드 자체는 VM에서 최초 1회 검증 필요)
+
 ## v3.5.0
 
 Date: 2026-07-04

@@ -1,0 +1,8 @@
+.git
+.venv
+downloads
+android
+*.apk
+*.idsig
+__pycache__
+.DS_Store
