@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.text.InputType;
 import android.webkit.DownloadListener;
+import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -45,6 +46,10 @@ public class MainActivity extends Activity {
                 }
             }
         });
+
+        // WebChromeClient가 없으면 JS confirm()/alert()가 무조건 취소 처리되어
+        // 다중 선택 삭제 등의 확인창이 동작하지 않는다. 기본 다이얼로그를 활성화한다.
+        web.setWebChromeClient(new WebChromeClient());
 
         web.setDownloadListener(new DownloadListener() {
             @Override

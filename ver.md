@@ -1,5 +1,27 @@
 # Version History
 
+## v3.4.4
+
+Date: 2026-07-04
+
+### 변경 내용
+
+* **APK에서 삭제가 되지 않던 버그 수정**
+  * 원인: 앱 WebView에 `WebChromeClient`가 없어 JS `confirm()`(삭제 확인창)이 무조건 '취소'로 처리 → 다중 선택 삭제가 조용히 중단됨 (웹브라우저·개별 삭제는 정상이라 놓쳤던 문제)
+  * 수정: `web.setWebChromeClient(new WebChromeClient())` 추가 — confirm/alert 등 JS 다이얼로그 정상 동작
+* APK 버전 3.4.4(344)
+
+### 수정 파일
+
+* android/java/com/downtube/app/MainActivity.java (WebChromeClient 추가)
+* android/AndroidManifest.xml (버전), DownTube.apk (재빌드)
+
+### 검증 내용 (Android 14 에뮬레이터, 앱 → 실서버 직결)
+
+* 다중 선택 삭제: "삭제 (2)" → 확인창 정상 표시 → OK → 2개 작업 삭제(서버 0) 확인
+* 개별 삭제 버튼: 작업 삭제(서버 0) 확인
+* 첫 실행 자동 접속 및 접속 실패 시 주소 입력창 동작 확인
+
 ## v3.4.3
 
 Date: 2026-07-03
