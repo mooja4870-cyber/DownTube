@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.text.InputType;
 import android.webkit.DownloadListener;
+import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
@@ -47,9 +48,59 @@ public class MainActivity extends Activity {
             }
         });
 
-        // WebChromeClient가 없으면 JS confirm()/alert()가 무조건 취소 처리되어
-        // 다중 선택 삭제 등의 확인창이 동작하지 않는다. 기본 다이얼로그를 활성화한다.
-        web.setWebChromeClient(new WebChromeClient());
+        // WebChromeClient에서 JS confirm() 및 alert()를 네이티브 대화상자로 구현하여
+        // 모든 기기에서 확인 및 알림창이 정상적으로 동작하도록 보장한다.
+        web.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onJsConfirm(WebView view, String url, String message, final JsResult result) {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("DownTube")
+                        .setMessage(message)
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                result.confirm();
+                            }
+                        })
+                        .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                result.cancel();
+                            }
+                        })
+                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialog) {
+                                result.cancel();
+                            }
+                        })
+                        .setCancelable(false)
+                        .show();
+                return true;
+            }
+
+            @Override
+            public boolean onJsAlert(WebView view, String url, String message, final JsResult result) {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("DownTube")
+                        .setMessage(message)
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                result.confirm();
+                            }
+                        })
+                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialog) {
+                                result.confirm();
+                            }
+                        })
+                        .setCancelable(false)
+                        .show();
+                return true;
+            }
+        });
 
         web.setDownloadListener(new DownloadListener() {
             @Override

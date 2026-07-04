@@ -1,5 +1,28 @@
 # Version History
 
+## v3.6.1
+
+Date: 2026-07-04
+
+### 변경 내용
+
+* **안드로이드 앱(APK) 다중 선택 삭제 confirm 버그 수정**
+  * WebView에서 JavaScript `confirm()` 및 `alert()` 대화상자를 호출할 때, 기본 Android WebChromeClient가 대화상자를 띄우지 못하고 강제로 취소(false) 처리하는 문제를 수정했습니다.
+  * `MainActivity.java`의 `WebChromeClient`에서 `onJsConfirm()` 및 `onJsAlert()`를 오버라이드하여 안드로이드 네이티브 `AlertDialog`로 정상적인 확인창이 뜨도록 개선했습니다.
+* **APK 버전 갱신**
+  * Android 앱 버전 코드를 `361`, 버전명을 `3.6.1`로 갱신하고 재빌드했습니다.
+
+### 수정 파일
+
+* android/java/com/downtube/app/MainActivity.java
+* android/AndroidManifest.xml
+* DownTube.apk
+* DownTube.apk.idsig
+
+### 검증 내용
+
+* Android SDK 기반 자바 컴파일 및 APK 서명 재빌드 완료 (`DownTube.apk` 약 50KB)
+
 ## v3.6.0
 
 Date: 2026-07-04
