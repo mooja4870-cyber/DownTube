@@ -85,6 +85,8 @@ def run_download(job_id: str, video_id: str, fmt: str, quality: str) -> None:
             "quiet": True,
             "no_warnings": True,
             "ffmpeg_location": FFMPEG,
+            "external_downloader": "aria2c",
+            "external_downloader_args": {"aria2c": ["-c", "-j", "16", "-x", "16", "-s", "16", "-k", "1M"]},
         }
         if fmt == "mp3":
             ydl_opts["format"] = "bestaudio/best"
