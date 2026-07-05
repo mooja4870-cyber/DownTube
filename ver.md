@@ -1,5 +1,24 @@
 # Version History
 
+## v3.6.2
+
+Date: 2026-07-05
+
+### 변경 내용
+
+* **AI 에이전트 작업 폴더 오인 재발 방지책(Rule) 적용**
+  * 단순 Active Document(활성 커서) 위치에 의존하지 않고, 항상 지정된 워크스페이스 URI를 교차 검증하도록 `.agents/AGENTS.md` 규칙 파일 추가
+
+### 수정 파일
+
+* .agents/AGENTS.md
+* ver.md
+
+### 검증 내용
+
+* 프로젝트 스코프 룰(AGENTS.md) 파일 생성 완료
+
+
 ## v3.6.1
 
 Date: 2026-07-04
